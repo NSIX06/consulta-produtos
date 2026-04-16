@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { Search, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, PackageSearch } from 'lucide-react';
+import { useState, useMemo, useRef, useEffect } from 'react';
+import { Search, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, PackageSearch, Check, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +13,7 @@ const PAGE_SIZE = 20;
 interface ProductTableProps {
   products: Product[];
   brandName?: string;
+  onStatusChange?: (id: string, status: 'pendente' | 'cadastrado', codigo?: string) => void;
 }
 
 function SortIcon({ active, dir }: { active: boolean; dir: SortDirection }) {
@@ -22,12 +23,37 @@ function SortIcon({ active, dir }: { active: boolean; dir: SortDirection }) {
     : <ArrowDown className="w-3 h-3 text-blue-600" />;
 }
 
-export function ProductTable({ products, brandName }: ProductTableProps) {
+export function ProductTable({ products, brandName, onStatusChange }: ProductTableProps) {
   const [search, setSearch] = useState('');
   const [sortField, setSortField] = useState<SortField>('original');
   const [sortDir, setSortDir] = useState<SortDirection>('asc');
   const [page, setPage] = useState(0);
   const [statusFilter, setStatusFilter] = useState<'todos' | 'pendente' | 'cadastrado'>('todos');
+
+  // Controle do input inline de código
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [inputCode, setInputCode] = useState('');
+  const codeInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (confirmingId) codeInputRef.current?.focus();
+  }, [confirmingId]);
+
+  const handleOpenConfirm = (p: Product) => {
+    setConfirmingId(p.id);
+    setInputCode(p.codigo ?? '');
+  };
+
+  const handleConfirmCadastro = (id: string) => {
+    onStatusChange?.(id, 'cadastrado', inputCode.trim() || undefined);
+    setConfirmingId(null);
+    setInputCode('');
+  };
+
+  const handleCancelConfirm = () => {
+    setConfirmingId(null);
+    setInputCode('');
+  };
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -199,9 +225,52 @@ export function ProductTable({ products, brandName }: ProductTableProps) {
                   <TableCell className="font-mono text-sm text-muted-foreground">{p.codigo || '—'}</TableCell>
                   <TableCell className="font-mono text-sm">{p.cod_fabricacao || '—'}</TableCell>
                   <TableCell className="text-center">
-                    <Badge variant={p.status === 'cadastrado' ? 'success' : 'warning'}>
-                      {p.status === 'cadastrado' ? 'Cadastrado' : 'Pendente'}
-                    </Badge>
+                    {onStatusChange && confirmingId === p.id ? (
+                      // Input inline para inserir o código ao cadastrar
+                      <form
+                        onSubmit={(e) => { e.preventDefault(); handleConfirmCadastro(p.id); }}
+                        className="flex items-center gap-1 justify-center"
+                      >
+                        <input
+                          ref={codeInputRef}
+                          value={inputCode}
+                          onChange={(e) => setInputCode(e.target.value)}
+                          placeholder="Código do sistema..."
+                          className="h-7 w-36 px-2 text-xs border border-blue-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono"
+                        />
+                        <button
+                          type="submit"
+                          title="Confirmar cadastro"
+                          className="h-7 w-7 flex items-center justify-center rounded-md bg-emerald-500 hover:bg-emerald-600 text-white transition-colors flex-shrink-0"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleCancelConfirm}
+                          title="Cancelar"
+                          className="h-7 w-7 flex items-center justify-center rounded-md border border-border hover:border-red-400 hover:text-red-500 transition-colors flex-shrink-0"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </form>
+                    ) : onStatusChange && p.status === 'pendente' ? (
+                      <button onClick={() => handleOpenConfirm(p)} title="Clique para marcar como Cadastrado" className="group">
+                        <Badge variant="warning" className="cursor-pointer transition-opacity group-hover:opacity-75">
+                          Pendente
+                        </Badge>
+                      </button>
+                    ) : onStatusChange && p.status === 'cadastrado' ? (
+                      <button onClick={() => onStatusChange(p.id, 'pendente')} title="Clique para voltar a Pendente" className="group">
+                        <Badge variant="success" className="cursor-pointer transition-opacity group-hover:opacity-75">
+                          Cadastrado
+                        </Badge>
+                      </button>
+                    ) : (
+                      <Badge variant={p.status === 'cadastrado' ? 'success' : 'warning'}>
+                        {p.status === 'cadastrado' ? 'Cadastrado' : 'Pendente'}
+                      </Badge>
+                    )}
                   </TableCell>
                 </TableRow>
               ))

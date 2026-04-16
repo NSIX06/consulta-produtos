@@ -3,7 +3,7 @@ import { Plus, X } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { ProductTable } from '@/components/ProductTable';
 import { BudgetTable } from '@/components/BudgetTable';
-import { loadProducts, loadBrands, addBrand, removeBrand } from '@/lib/store';
+import { loadProducts, loadBrands, addBrand, removeBrand, updateProductStatus } from '@/lib/store';
 import type { Product, BudgetItem } from '@/types/product';
 
 // Cores por marca (expanda conforme necessário)
@@ -138,7 +138,13 @@ export default function Index() {
         {budgetItems ? (
           <BudgetTable items={budgetItems} onClose={() => setBudgetItems(null)} />
         ) : (
-          <ProductTable products={activeProducts} brandName={activeBrand} />
+          <ProductTable
+            products={activeProducts}
+            brandName={activeBrand}
+            onStatusChange={(id, status, codigo) =>
+              setAllProducts(updateProductStatus(id, status, codigo))
+            }
+          />
         )}
       </main>
     </div>

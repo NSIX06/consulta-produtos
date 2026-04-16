@@ -119,6 +119,22 @@ export function markAsCadastrado(
   return { products, updated };
 }
 
+// ─── Alterar status de um produto individual ──────────────────────────────────
+
+export function updateProductStatus(
+  id: string,
+  status: 'pendente' | 'cadastrado',
+  codigo?: string
+): Product[] {
+  const all = loadProducts();
+  const products = all.map((p) => {
+    if (p.id !== id) return p;
+    return { ...p, status, ...(codigo !== undefined ? { codigo } : {}) };
+  });
+  saveProducts(products);
+  return products;
+}
+
 // ─── Limpar ───────────────────────────────────────────────────────────────────
 
 export function clearDatabase(brand?: string): Product[] {
