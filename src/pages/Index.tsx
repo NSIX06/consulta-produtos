@@ -206,7 +206,7 @@ export default function Index() {
                               else setBrandColors((prev) => ({ ...prev, [brand]: val }));
                             }
                           }}
-                          className="flex-1 h-8 px-2 text-sm font-mono border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="flex-1 min-w-0 h-8 px-2 text-sm font-mono border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                           placeholder="#000000"
                           maxLength={7}
                         />
