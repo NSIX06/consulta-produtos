@@ -3,8 +3,8 @@ import { Plus, X } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { ProductTable } from '@/components/ProductTable';
 import { BudgetTable } from '@/components/BudgetTable';
-import { loadProducts, loadBrands, addBrand, removeBrand, updateProductStatus } from '@/lib/store';
-import type { Product, BudgetItem } from '@/types/product';
+import { loadProducts, loadBrands, addBrand, removeBrand, updateProductStatus, addProduct } from '@/lib/store';
+import type { Product, BudgetItem, ParsedRow } from '@/types/product';
 
 // Cores por marca (expanda conforme necessário)
 const BRAND_COLORS: Record<string, string> = {
@@ -136,7 +136,27 @@ export default function Index() {
 
         {/* ── Conteúdo da aba ────────────────────────────────────────────── */}
         {budgetItems ? (
-          <BudgetTable items={budgetItems} onClose={() => setBudgetItems(null)} />
+          <BudgetTable
+            items={budgetItems}
+            onClose={() => setBudgetItems(null)}
+            onAddToDatabase={(item, codigo) => {
+              const row: ParsedRow = {
+                descricao: item.descricao,
+                codigo,
+                cod_fabricacao: item.cod_fabricacao,
+              };
+              const newAll = addProduct(row, activeBrand);
+              setAllProducts(newAll);
+              const added = newAll[newAll.length - 1];
+              setBudgetItems((prev) =>
+                prev?.map((bi) =>
+                  bi === item
+                    ? { ...bi, encontrado: true, matchedBy: 'exato', matchScore: 100, matchedProduct: added }
+                    : bi
+                ) ?? null
+              );
+            }}
+          />
         ) : (
           <ProductTable
             products={activeProducts}

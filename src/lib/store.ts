@@ -119,6 +119,27 @@ export function markAsCadastrado(
   return { products, updated };
 }
 
+// ─── Adicionar produto individual ao banco ────────────────────────────────────
+
+export function addProduct(
+  row: ParsedRow,
+  brand: string
+): Product[] {
+  const all = loadProducts();
+  const product: Product = {
+    ...row,
+    brand,
+    id: crypto.randomUUID(),
+    addedAt: new Date().toISOString(),
+    status: 'cadastrado',
+    order: all.filter((p) => p.brand === brand).length,
+  };
+  const products = [...all, product];
+  saveProducts(products);
+  addBrand(brand);
+  return products;
+}
+
 // ─── Alterar status de um produto individual ──────────────────────────────────
 
 export function updateProductStatus(

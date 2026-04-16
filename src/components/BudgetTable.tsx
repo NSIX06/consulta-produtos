@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import {
   Search, ChevronLeft, ChevronRight, CheckCircle2, XCircle,
-  Download, ArrowLeft, Sparkles, Zap, Type, BarChart3,
+  Download, ArrowLeft, Sparkles, Zap, Type, BarChart3, Plus, Check, X,
 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
@@ -20,6 +20,7 @@ const PAGE_SIZE = 20;
 interface BudgetTableProps {
   items: BudgetItem[];
   onClose: () => void;
+  onAddToDatabase?: (item: BudgetItem, codigo: string) => void;
 }
 
 function MatchBadge({ item }: { item: BudgetItem }) {
@@ -54,10 +55,36 @@ function ScoreBar({ score }: { score: number }) {
   );
 }
 
-export function BudgetTable({ items, onClose }: BudgetTableProps) {
+export function BudgetTable({ items, onClose, onAddToDatabase }: BudgetTableProps) {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const [filter, setFilter] = useState<'todos' | 'encontrado' | 'nao_encontrado'>('todos');
+
+  // Controle do input inline de adição ao banco
+  const [addingItem, setAddingItem] = useState<BudgetItem | null>(null);
+  const [addCode, setAddCode] = useState('');
+  const addInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (addingItem) addInputRef.current?.focus();
+  }, [addingItem]);
+
+  const handleOpenAdd = (item: BudgetItem) => {
+    setAddingItem(item);
+    setAddCode(item.codigo ?? '');
+  };
+
+  const handleConfirmAdd = () => {
+    if (!addingItem) return;
+    onAddToDatabase?.(addingItem, addCode.trim());
+    setAddingItem(null);
+    setAddCode('');
+  };
+
+  const handleCancelAdd = () => {
+    setAddingItem(null);
+    setAddCode('');
+  };
 
   const encontrados = items.filter((i) => i.encontrado).length;
   const naoEncontrados = items.length - encontrados;
@@ -213,7 +240,7 @@ export function BudgetTable({ items, onClose }: BudgetTableProps) {
               <TableHead>Cód. Fabricação</TableHead>
               <TableHead>Cód. Cadastrado</TableHead>
               <TableHead className="text-center w-36">Situação</TableHead>
-              <TableHead className="text-center w-32">Match</TableHead>
+              <TableHead className="text-center w-48">Ação / Match</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -257,14 +284,50 @@ export function BudgetTable({ items, onClose }: BudgetTableProps) {
                     )}
                   </TableCell>
                   <TableCell className="text-center">
-                    {item.encontrado && (
+                    {item.encontrado ? (
                       <div className="flex flex-col items-center gap-1">
                         <MatchBadge item={item} />
                         {item.matchScore !== undefined && item.matchScore < 100 && (
                           <ScoreBar score={item.matchScore} />
                         )}
                       </div>
-                    )}
+                    ) : onAddToDatabase && addingItem === item ? (
+                      <form
+                        onSubmit={(e) => { e.preventDefault(); handleConfirmAdd(); }}
+                        className="flex items-center gap-1 justify-center"
+                      >
+                        <input
+                          ref={addInputRef}
+                          value={addCode}
+                          onChange={(e) => setAddCode(e.target.value)}
+                          placeholder="Código da empresa..."
+                          className="h-7 w-32 px-2 text-xs border border-blue-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono"
+                        />
+                        <button
+                          type="submit"
+                          title="Confirmar e adicionar ao banco"
+                          className="h-7 w-7 flex items-center justify-center rounded-md bg-emerald-500 hover:bg-emerald-600 text-white transition-colors flex-shrink-0"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleCancelAdd}
+                          title="Cancelar"
+                          className="h-7 w-7 flex items-center justify-center rounded-md border border-border hover:border-red-400 hover:text-red-500 transition-colors flex-shrink-0"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </form>
+                    ) : onAddToDatabase ? (
+                      <button
+                        onClick={() => handleOpenAdd(item)}
+                        title="Adicionar ao banco de dados como Cadastrado"
+                        className="flex items-center gap-1 px-2 h-7 rounded-md border border-dashed border-emerald-400 text-emerald-600 hover:bg-emerald-50 transition-colors text-xs font-medium mx-auto"
+                      >
+                        <Plus className="w-3 h-3" /> Adicionar
+                      </button>
+                    ) : null}
                   </TableCell>
                 </TableRow>
               ))
