@@ -24,6 +24,7 @@ const ACCEPTED = '.pdf,.txt,.csv,.docx,.xlsx,.xls,.jpeg,.jpg,.png,.tiff,.tif';
 
 interface SidebarProps {
   products: Product[];
+  activeBrand: string;
   onProductsChange: (p: Product[]) => void;
   onBudgetAnalysis: (items: BudgetItem[] | null) => void;
 }
@@ -66,7 +67,7 @@ function StatCard({
 
 // ─── Componente principal ─────────────────────────────────────────────────────
 
-export function Sidebar({ products, onProductsChange, onBudgetAnalysis }: SidebarProps) {
+export function Sidebar({ products, activeBrand, onProductsChange, onBudgetAnalysis }: SidebarProps) {
   const dbInputRef = useRef<HTMLInputElement>(null);
   const updateInputRef = useRef<HTMLInputElement>(null);
   const budgetInputRef = useRef<HTMLInputElement>(null);
@@ -107,7 +108,7 @@ export function Sidebar({ products, onProductsChange, onBudgetAnalysis }: Sideba
     }
 
     if (allRows.length > 0) {
-      const { products: newProducts, count } = replaceDatabase(allRows);
+      const { products: newProducts, count } = replaceDatabase(allRows, activeBrand);
       onProductsChange(newProducts);
       onBudgetAnalysis(null);
       toast.success(`${count} produto(s) carregado(s) no banco`, {
@@ -178,7 +179,7 @@ export function Sidebar({ products, onProductsChange, onBudgetAnalysis }: Sideba
       const text = await parseFile(file);
       const rows = extractDbProducts(text);
       const codes = rows.flatMap((r) => [r.codigo, r.cod_fabricacao].filter(Boolean));
-      const { products: updated, updated: count } = markAsCadastrado(products, codes);
+      const { products: updated, updated: count } = markAsCadastrado(activeBrand, codes);
       onProductsChange(updated);
       toast.success(`${count} produto(s) marcado(s) como Cadastrado`);
     } catch (err: unknown) {
@@ -222,10 +223,10 @@ export function Sidebar({ products, onProductsChange, onBudgetAnalysis }: Sideba
   // ── Limpar banco ──────────────────────────────────────────────────────────
 
   const handleClear = () => {
-    clearDatabase();
-    onProductsChange([]);
+    const remaining = clearDatabase(activeBrand);
+    onProductsChange(remaining);
     onBudgetAnalysis(null);
-    toast.info('Banco de dados limpo.');
+    toast.info(`Banco de dados de ${activeBrand} limpo.`);
   };
 
   const isProcessing = processingDb || processingBudget || processingUpdate;
@@ -425,7 +426,7 @@ export function Sidebar({ products, onProductsChange, onBudgetAnalysis }: Sideba
                 <AlertDialogHeader>
                   <AlertDialogTitle>Limpar banco de dados?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Todos os {total} produto(s) serão removidos. Esta ação não pode ser desfeita.
+                    Todos os {total} produto(s) de <strong>{activeBrand}</strong> serão removidos. Esta ação não pode ser desfeita.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -453,6 +454,7 @@ export function Sidebar({ products, onProductsChange, onBudgetAnalysis }: Sideba
 
       <FormatDialog
         open={formatOpen}
+        activeBrand={activeBrand}
         onClose={() => setFormatOpen(false)}
         onImported={(p) => { onProductsChange(p); onBudgetAnalysis(null); }}
       />

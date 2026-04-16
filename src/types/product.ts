@@ -1,5 +1,6 @@
 export interface Product {
   id: string;
+  brand: string;
   descricao: string;
   codigo: string;
   cod_fabricacao: string;

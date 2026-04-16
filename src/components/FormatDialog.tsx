@@ -47,13 +47,14 @@ const ROLE_COLORS: Record<ColRole, string> = {
 
 interface FormatDialogProps {
   open: boolean;
+  activeBrand: string;
   onClose: () => void;
   onImported: (products: Product[]) => void;
 }
 
 type Step = 'upload' | 'mapping' | 'preview';
 
-export function FormatDialog({ open, onClose, onImported }: FormatDialogProps) {
+export function FormatDialog({ open, activeBrand, onClose, onImported }: FormatDialogProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [step, setStep] = useState<Step>('upload');
   const [loading, setLoading] = useState(false);
@@ -171,7 +172,7 @@ export function FormatDialog({ open, onClose, onImported }: FormatDialogProps) {
   // ── Importar ──────────────────────────────────────────────────────────────
   const handleImport = () => {
     if (!result) return;
-    const { products, count } = replaceDatabase(result);
+    const { products, count } = replaceDatabase(result, activeBrand);
     onImported(products);
     toast.success(`${count} produto(s) importados com sucesso.`);
     handleClose();

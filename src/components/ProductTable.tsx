@@ -12,6 +12,7 @@ const PAGE_SIZE = 20;
 
 interface ProductTableProps {
   products: Product[];
+  brandName?: string;
 }
 
 function SortIcon({ active, dir }: { active: boolean; dir: SortDirection }) {
@@ -21,7 +22,7 @@ function SortIcon({ active, dir }: { active: boolean; dir: SortDirection }) {
     : <ArrowDown className="w-3 h-3 text-blue-600" />;
 }
 
-export function ProductTable({ products }: ProductTableProps) {
+export function ProductTable({ products, brandName }: ProductTableProps) {
   const [search, setSearch] = useState('');
   const [sortField, setSortField] = useState<SortField>('original');
   const [sortDir, setSortDir] = useState<SortDirection>('asc');
@@ -90,7 +91,9 @@ export function ProductTable({ products }: ProductTableProps) {
     <div className="flex flex-col animate-fade-in">
       {/* Header */}
       <div className="mb-5">
-        <h1 className="text-2xl font-bold text-foreground tracking-tight">Produtos Cadastrados</h1>
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">
+          {brandName ? `${brandName}` : 'Produtos Cadastrados'}
+        </h1>
         <p className="text-sm text-muted-foreground mt-0.5">
           Gerencie e consulte produtos extraídos de documentos
         </p>
