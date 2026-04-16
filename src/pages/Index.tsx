@@ -1,5 +1,5 @@
 import { useMemo, useState, useRef, useEffect } from 'react';
-import { Plus, X, Palette } from 'lucide-react';
+import { Plus, X, Palette, Check } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { ProductTable } from '@/components/ProductTable';
 import { BudgetTable } from '@/components/BudgetTable';
@@ -12,17 +12,21 @@ import type { Product, BudgetItem, ParsedRow } from '@/types/product';
 
 const PRESET_COLORS = [
   { label: 'Verde John Deere', value: '#367c2b' },
-  { label: 'Azul', value: '#2563eb' },
-  { label: 'Vermelho', value: '#dc2626' },
-  { label: 'Laranja', value: '#ea580c' },
-  { label: 'Roxo', value: '#7c3aed' },
-  { label: 'Teal', value: '#0d9488' },
-  { label: 'Rosa', value: '#db2777' },
-  { label: 'Índigo', value: '#4f46e5' },
-  { label: 'Âmbar', value: '#d97706' },
-  { label: 'Cinza', value: '#6b7280' },
-  { label: 'Marinho', value: '#1e40af' },
-  { label: 'Preto', value: '#1f2937' },
+  { label: 'Verde Claro',      value: '#16a34a' },
+  { label: 'Teal',             value: '#0d9488' },
+  { label: 'Azul Claro',       value: '#0284c7' },
+  { label: 'Azul',             value: '#2563eb' },
+  { label: 'Marinho',          value: '#1e40af' },
+  { label: 'Índigo',           value: '#4f46e5' },
+  { label: 'Roxo',             value: '#7c3aed' },
+  { label: 'Rosa',             value: '#db2777' },
+  { label: 'Vermelho',         value: '#dc2626' },
+  { label: 'Laranja',          value: '#ea580c' },
+  { label: 'Âmbar',            value: '#d97706' },
+  { label: 'Cinza',            value: '#6b7280' },
+  { label: 'Preto',            value: '#1f2937' },
+  { label: 'New Holland',      value: '#003DA5' },
+  { label: 'Case',             value: '#e4002b' },
 ];
 
 export default function Index() {
@@ -159,44 +163,54 @@ export default function Index() {
                 {colorPickerBrand === brand && (
                   <div
                     ref={colorPickerRef}
-                    className="absolute top-11 left-0 z-50 bg-white border border-border rounded-xl shadow-lg p-3 w-52"
+                    className="absolute top-11 left-0 z-50 bg-white border border-border rounded-xl shadow-xl p-4 w-64"
                   >
-                    <p className="text-xs font-semibold text-muted-foreground mb-2 px-0.5">
-                      Cor da aba — {brand}
+                    <p className="text-xs font-semibold text-foreground mb-3">
+                      Cor da aba — <span className="text-muted-foreground">{brand}</span>
                     </p>
-                    <div className="grid grid-cols-6 gap-1.5">
-                      {PRESET_COLORS.map((c) => (
-                        <button
-                          key={c.value}
-                          title={c.label}
-                          onClick={() => handleColorChange(brand, c.value)}
-                          style={{ backgroundColor: c.value }}
-                          className={`w-6 h-6 rounded-md transition-transform hover:scale-110 border-2 ${
-                            color === c.value ? 'border-white ring-2 ring-offset-1 ring-gray-400 scale-110' : 'border-transparent'
-                          }`}
-                        />
-                      ))}
+                    <div className="grid grid-cols-4 gap-2 mb-3">
+                      {PRESET_COLORS.map((c) => {
+                        const isSelected = color === c.value;
+                        return (
+                          <button
+                            key={c.value}
+                            title={c.label}
+                            onClick={() => handleColorChange(brand, c.value)}
+                            style={{ backgroundColor: c.value }}
+                            className={`w-full h-9 rounded-lg transition-all flex items-center justify-center ${
+                              isSelected
+                                ? 'ring-2 ring-offset-2 ring-gray-400 scale-105'
+                                : 'hover:scale-105 hover:ring-2 hover:ring-offset-1 hover:ring-gray-300'
+                            }`}
+                          >
+                            {isSelected && <Check className="w-4 h-4 text-white drop-shadow" />}
+                          </button>
+                        );
+                      })}
                     </div>
-                    {/* Input hex manual */}
-                    <div className="mt-2.5 flex items-center gap-1.5">
-                      <div
-                        className="w-6 h-6 rounded-md border border-border flex-shrink-0"
-                        style={{ backgroundColor: color }}
-                      />
-                      <input
-                        type="text"
-                        value={color}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          if (/^#[0-9a-fA-F]{0,6}$/.test(val)) {
-                            if (/^#[0-9a-fA-F]{6}$/.test(val)) handleColorChange(brand, val);
-                            else setBrandColors((prev) => ({ ...prev, [brand]: val }));
-                          }
-                        }}
-                        className="flex-1 h-7 px-2 text-xs font-mono border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        placeholder="#000000"
-                        maxLength={7}
-                      />
+                    {/* Divider */}
+                    <div className="border-t border-border pt-3">
+                      <p className="text-[10px] text-muted-foreground mb-1.5">Hex personalizado</p>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-8 h-8 rounded-lg border border-border flex-shrink-0 shadow-sm"
+                          style={{ backgroundColor: color }}
+                        />
+                        <input
+                          type="text"
+                          value={color}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (/^#[0-9a-fA-F]{0,6}$/.test(val)) {
+                              if (/^#[0-9a-fA-F]{6}$/.test(val)) handleColorChange(brand, val);
+                              else setBrandColors((prev) => ({ ...prev, [brand]: val }));
+                            }
+                          }}
+                          className="flex-1 h-8 px-2 text-sm font-mono border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="#000000"
+                          maxLength={7}
+                        />
+                      </div>
                     </div>
                   </div>
                 )}
