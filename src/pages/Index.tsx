@@ -1,25 +1,52 @@
-import { useMemo, useState } from 'react';
-import { Plus, X } from 'lucide-react';
+import { useMemo, useState, useRef, useEffect } from 'react';
+import { Plus, X, Palette } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { ProductTable } from '@/components/ProductTable';
 import { BudgetTable } from '@/components/BudgetTable';
-import { loadProducts, loadBrands, addBrand, removeBrand, updateProductStatus, addProduct } from '@/lib/store';
+import {
+  loadProducts, loadBrands, addBrand, removeBrand,
+  updateProductStatus, addProduct,
+  loadBrandColors, saveBrandColor,
+} from '@/lib/store';
 import type { Product, BudgetItem, ParsedRow } from '@/types/product';
 
-// Cores por marca (expanda conforme necessário)
-const BRAND_COLORS: Record<string, string> = {
-  'John Deere': 'bg-[#367c2b] border-[#367c2b] hover:bg-[#2e6b25]',
-};
-
-function getBrandActiveClass(brand: string): string {
-  return BRAND_COLORS[brand] ?? 'bg-blue-600 border-blue-600 hover:bg-blue-700';
-}
+const PRESET_COLORS = [
+  { label: 'Verde John Deere', value: '#367c2b' },
+  { label: 'Azul', value: '#2563eb' },
+  { label: 'Vermelho', value: '#dc2626' },
+  { label: 'Laranja', value: '#ea580c' },
+  { label: 'Roxo', value: '#7c3aed' },
+  { label: 'Teal', value: '#0d9488' },
+  { label: 'Rosa', value: '#db2777' },
+  { label: 'Índigo', value: '#4f46e5' },
+  { label: 'Âmbar', value: '#d97706' },
+  { label: 'Cinza', value: '#6b7280' },
+  { label: 'Marinho', value: '#1e40af' },
+  { label: 'Preto', value: '#1f2937' },
+];
 
 export default function Index() {
   const [allProducts, setAllProducts] = useState<Product[]>(() => loadProducts());
   const [brands, setBrands] = useState<string[]>(() => loadBrands());
   const [activeBrand, setActiveBrand] = useState<string>(() => loadBrands()[0] ?? 'John Deere');
   const [budgetItems, setBudgetItems] = useState<BudgetItem[] | null>(null);
+  const [budgetFileName, setBudgetFileName] = useState<string | undefined>(undefined);
+
+  // Cores personalizadas por marca
+  const [brandColors, setBrandColors] = useState<Record<string, string>>(() => loadBrandColors());
+  const [colorPickerBrand, setColorPickerBrand] = useState<string | null>(null);
+  const colorPickerRef = useRef<HTMLDivElement>(null);
+
+  // Fechar color picker ao clicar fora
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (colorPickerRef.current && !colorPickerRef.current.contains(e.target as Node)) {
+        setColorPickerBrand(null);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   // Adicionar marca
   const [addingBrand, setAddingBrand] = useState(false);
@@ -29,6 +56,8 @@ export default function Index() {
     () => allProducts.filter((p) => p.brand === activeBrand),
     [allProducts, activeBrand]
   );
+
+  const getTabColor = (brand: string) => brandColors[brand] ?? '#2563eb';
 
   const handleAddBrand = (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,26 +86,41 @@ export default function Index() {
     setBudgetItems(null);
   };
 
+  const handleColorChange = (brand: string, color: string) => {
+    const updated = saveBrandColor(brand, color);
+    setBrandColors(updated);
+    setColorPickerBrand(null);
+  };
+
+  const handleBudgetAnalysis = (items: BudgetItem[] | null, fileName?: string) => {
+    setBudgetItems(items);
+    setBudgetFileName(items ? fileName : undefined);
+  };
+
   return (
     <div className="flex h-screen overflow-hidden bg-[#f0f2f5]">
       <Sidebar
         products={activeProducts}
         activeBrand={activeBrand}
         onProductsChange={setAllProducts}
-        onBudgetAnalysis={setBudgetItems}
+        onBudgetAnalysis={handleBudgetAnalysis}
       />
       <main className="flex-1 overflow-y-auto scrollbar-thin p-8">
         {/* ── Abas de marcas ─────────────────────────────────────────────── */}
         <div className="flex items-center gap-2 mb-6 flex-wrap">
           {brands.map((brand) => {
             const isActive = brand === activeBrand;
+            const color = getTabColor(brand);
+
             return (
               <div key={brand} className="relative group">
+                {/* Aba */}
                 <button
                   onClick={() => handleSwitchBrand(brand)}
+                  style={isActive ? { backgroundColor: color, borderColor: color } : {}}
                   className={`flex items-center gap-2 px-4 h-9 rounded-lg text-sm font-medium border transition-colors ${
                     isActive
-                      ? `${getBrandActiveClass(brand)} text-white`
+                      ? 'text-white'
                       : 'bg-white text-muted-foreground border-border hover:border-blue-400 hover:text-blue-600'
                   }`}
                 >
@@ -85,7 +129,22 @@ export default function Index() {
                     ({allProducts.filter((p) => p.brand === brand).length})
                   </span>
                 </button>
-                {/* Botão remover (aparece ao hover, só em marcas não ativas) */}
+
+                {/* Botão paleta de cores (hover na aba ativa) */}
+                {isActive && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setColorPickerBrand(colorPickerBrand === brand ? null : brand);
+                    }}
+                    title="Personalizar cor da aba"
+                    className="absolute -top-1.5 -right-1.5 hidden group-hover:flex w-5 h-5 rounded-full bg-white border border-border shadow-sm items-center justify-center hover:border-blue-400 transition-colors"
+                  >
+                    <Palette className="w-3 h-3 text-muted-foreground" />
+                  </button>
+                )}
+
+                {/* Botão remover (hover em abas não ativas) */}
                 {!isActive && brands.length > 1 && (
                   <button
                     onClick={() => handleRemoveBrand(brand)}
@@ -94,6 +153,52 @@ export default function Index() {
                   >
                     <X className="w-2.5 h-2.5" />
                   </button>
+                )}
+
+                {/* Color picker */}
+                {colorPickerBrand === brand && (
+                  <div
+                    ref={colorPickerRef}
+                    className="absolute top-11 left-0 z-50 bg-white border border-border rounded-xl shadow-lg p-3 w-52"
+                  >
+                    <p className="text-xs font-semibold text-muted-foreground mb-2 px-0.5">
+                      Cor da aba — {brand}
+                    </p>
+                    <div className="grid grid-cols-6 gap-1.5">
+                      {PRESET_COLORS.map((c) => (
+                        <button
+                          key={c.value}
+                          title={c.label}
+                          onClick={() => handleColorChange(brand, c.value)}
+                          style={{ backgroundColor: c.value }}
+                          className={`w-6 h-6 rounded-md transition-transform hover:scale-110 border-2 ${
+                            color === c.value ? 'border-white ring-2 ring-offset-1 ring-gray-400 scale-110' : 'border-transparent'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    {/* Input hex manual */}
+                    <div className="mt-2.5 flex items-center gap-1.5">
+                      <div
+                        className="w-6 h-6 rounded-md border border-border flex-shrink-0"
+                        style={{ backgroundColor: color }}
+                      />
+                      <input
+                        type="text"
+                        value={color}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (/^#[0-9a-fA-F]{0,6}$/.test(val)) {
+                            if (/^#[0-9a-fA-F]{6}$/.test(val)) handleColorChange(brand, val);
+                            else setBrandColors((prev) => ({ ...prev, [brand]: val }));
+                          }
+                        }}
+                        className="flex-1 h-7 px-2 text-xs font-mono border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        placeholder="#000000"
+                        maxLength={7}
+                      />
+                    </div>
+                  </div>
                 )}
               </div>
             );
@@ -138,7 +243,8 @@ export default function Index() {
         {budgetItems ? (
           <BudgetTable
             items={budgetItems}
-            onClose={() => setBudgetItems(null)}
+            fileName={budgetFileName}
+            onClose={() => { setBudgetItems(null); setBudgetFileName(undefined); }}
             onAddToDatabase={(item, codigo) => {
               const row: ParsedRow = {
                 descricao: item.descricao,

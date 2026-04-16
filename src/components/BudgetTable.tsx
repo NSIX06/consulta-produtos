@@ -19,6 +19,7 @@ const PAGE_SIZE = 20;
 
 interface BudgetTableProps {
   items: BudgetItem[];
+  fileName?: string;
   onClose: () => void;
   onAddToDatabase?: (item: BudgetItem, codigo: string) => void;
 }
@@ -55,7 +56,7 @@ function ScoreBar({ score }: { score: number }) {
   );
 }
 
-export function BudgetTable({ items, onClose, onAddToDatabase }: BudgetTableProps) {
+export function BudgetTable({ items, fileName, onClose, onAddToDatabase }: BudgetTableProps) {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const [filter, setFilter] = useState<'todos' | 'encontrado' | 'nao_encontrado'>('todos');
@@ -170,9 +171,16 @@ export function BudgetTable({ items, onClose, onAddToDatabase }: BudgetTableProp
             <span className="text-sm font-medium">Análise de Orçamento</span>
           </div>
           <h1 className="text-2xl font-bold text-foreground tracking-tight">Análise de Orçamento</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Cruzamento do orçamento com a base de produtos cadastrados
-          </p>
+          <div className="flex items-center gap-2 mt-0.5">
+            <p className="text-sm text-muted-foreground">
+              Cruzamento do orçamento com a base de produtos cadastrados
+            </p>
+            {fileName && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 border border-blue-200 text-xs font-medium text-blue-700 font-mono">
+                📄 {fileName}
+              </span>
+            )}
+          </div>
         </div>
         <div className="flex gap-2 flex-shrink-0">
           <Button variant="outline" size="sm" onClick={handleExportNaoCadastrados} disabled={naoEncontrados === 0}>

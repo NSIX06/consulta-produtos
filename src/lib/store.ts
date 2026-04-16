@@ -7,6 +7,25 @@ import type { Product, ParsedRow } from '@/types/product';
 
 const DB_KEY = 'consulta-produtos-db-v2';
 const BRANDS_KEY = 'consulta-produtos-brands';
+const BRAND_COLORS_KEY = 'consulta-produtos-brand-colors';
+
+// ─── Cores das marcas ─────────────────────────────────────────────────────────
+
+export function loadBrandColors(): Record<string, string> {
+  try {
+    const raw = localStorage.getItem(BRAND_COLORS_KEY);
+    return raw ? JSON.parse(raw) : { 'John Deere': '#367c2b' };
+  } catch {
+    return { 'John Deere': '#367c2b' };
+  }
+}
+
+export function saveBrandColor(brand: string, color: string): Record<string, string> {
+  const colors = loadBrandColors();
+  colors[brand] = color;
+  localStorage.setItem(BRAND_COLORS_KEY, JSON.stringify(colors));
+  return colors;
+}
 
 // ─── Marcas ───────────────────────────────────────────────────────────────────
 

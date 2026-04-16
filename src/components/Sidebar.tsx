@@ -26,7 +26,7 @@ interface SidebarProps {
   products: Product[];
   activeBrand: string;
   onProductsChange: (p: Product[]) => void;
-  onBudgetAnalysis: (items: BudgetItem[] | null) => void;
+  onBudgetAnalysis: (items: BudgetItem[] | null, fileName?: string) => void;
 }
 
 // ─── Seção de label ───────────────────────────────────────────────────────────
@@ -147,7 +147,7 @@ export function Sidebar({ products, activeBrand, onProductsChange, onBudgetAnaly
 
       const results = analyzeAgainstDatabase(items, products);
       const found = results.filter((r) => r.encontrado).length;
-      onBudgetAnalysis(results);
+      onBudgetAnalysis(results, file.name);
 
       toast.success(`${items.length} item(ns) analisado(s)`, {
         description: `${found} encontrado(s) · ${items.length - found} não cadastrado(s)`,
