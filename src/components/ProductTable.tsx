@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { Search, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, PackageSearch, Check, X, Undo2 } from 'lucide-react';
+import { Search, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, PackageSearch, Check, X, Undo2, Pencil } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -217,13 +217,11 @@ export function ProductTable({ products, brandName, onStatusChange }: ProductTab
                   <TableCell className="font-medium text-sm max-w-xs truncate" title={p.descricao}>
                     {p.descricao}
                   </TableCell>
-                  <TableCell className="font-mono text-sm text-muted-foreground">{p.codigo || '-'}</TableCell>
-                  <TableCell className="font-mono text-sm">{p.cod_fabricacao || '-'}</TableCell>
-                  <TableCell className="text-center">
+                  <TableCell className="font-mono text-sm text-muted-foreground">
                     {onStatusChange && confirmingId === p.id ? (
                       <form
                         onSubmit={(e) => { e.preventDefault(); handleConfirmCadastro(p.id); }}
-                        className="flex items-center gap-1 justify-center"
+                        className="flex items-center gap-1"
                       >
                         <input
                           ref={codeInputRef}
@@ -234,7 +232,7 @@ export function ProductTable({ products, brandName, onStatusChange }: ProductTab
                         />
                         <button
                           type="submit"
-                          title="Confirmar cadastro"
+                          title="Confirmar"
                           className="h-7 w-7 flex items-center justify-center rounded-md bg-emerald-500 hover:bg-emerald-600 text-white transition-colors flex-shrink-0"
                         >
                           <Check className="w-3.5 h-3.5" />
@@ -256,7 +254,24 @@ export function ProductTable({ products, brandName, onStatusChange }: ProductTab
                           <X className="w-3.5 h-3.5" />
                         </button>
                       </form>
-                    ) : onStatusChange && p.status === 'pendente' ? (
+                    ) : (
+                      <div className="flex items-center gap-1.5 group/code">
+                        <span>{p.codigo || '-'}</span>
+                        {onStatusChange && (
+                          <button
+                            onClick={() => handleOpenConfirm(p)}
+                            title="Editar codigo"
+                            className="opacity-0 group-hover/code:opacity-100 transition-opacity text-muted-foreground hover:text-blue-600"
+                          >
+                            <Pencil className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell className="font-mono text-sm">{p.cod_fabricacao || '-'}</TableCell>
+                  <TableCell className="text-center">
+                    {onStatusChange && p.status === 'pendente' ? (
                       <button onClick={() => handleOpenConfirm(p)} title="Clique para marcar como Cadastrado" className="group">
                         <Badge variant="warning" className="cursor-pointer transition-opacity group-hover:opacity-75">
                           Pendente
