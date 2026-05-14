@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { Search, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, PackageSearch, Check, X } from 'lucide-react';
+import { Search, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, PackageSearch, Check, X, Undo2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -118,7 +118,7 @@ export function ProductTable({ products, brandName, onStatusChange }: ProductTab
       {/* Header */}
       <div className="mb-5">
         <h1 className="text-2xl font-bold text-foreground tracking-tight">
-          {brandName ? `${brandName}` : 'Produtos Cadastrados'}
+          {brandName ? ${brandName} : 'Produtos Cadastrados'}
         </h1>
         <p className="text-sm text-muted-foreground mt-0.5">
           Gerencie e consulte produtos extraídos de documentos
@@ -165,9 +165,9 @@ export function ProductTable({ products, brandName, onStatusChange }: ProductTab
 
         <div className="flex gap-1.5">
           {[
-            { key: 'todos', label: `Todos (${products.length})` },
-            { key: 'pendente', label: `Pendentes (${pendentes})` },
-            { key: 'cadastrado', label: `Cadastrados (${cadastrados})` },
+            { key: 'todos', label: Todos (${products.length}) },
+            { key: 'pendente', label: Pendentes (${pendentes}) },
+            { key: 'cadastrado', label: Cadastrados (${cadastrados}) },
           ].map(({ key, label }) => (
             <button
               key={key}
@@ -247,6 +247,14 @@ export function ProductTable({ products, brandName, onStatusChange }: ProductTab
                         </button>
                         <button
                           type="button"
+                          onClick={() => { onStatusChange?.(p.id, 'pendente'); handleCancelConfirm(); }}
+                          title="Voltar a Pendente"
+                          className="h-7 w-7 flex items-center justify-center rounded-md border border-border hover:border-amber-400 hover:text-amber-500 transition-colors flex-shrink-0"
+                        >
+                          <Undo2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
                           onClick={handleCancelConfirm}
                           title="Cancelar"
                           className="h-7 w-7 flex items-center justify-center rounded-md border border-border hover:border-red-400 hover:text-red-500 transition-colors flex-shrink-0"
@@ -261,7 +269,7 @@ export function ProductTable({ products, brandName, onStatusChange }: ProductTab
                         </Badge>
                       </button>
                     ) : onStatusChange && p.status === 'cadastrado' ? (
-                      <button onClick={() => onStatusChange(p.id, 'pendente')} title="Clique para voltar a Pendente" className="group">
+                      <button onClick={() => handleOpenConfirm(p)} title="Clique para editar o código" className="group">
                         <Badge variant="success" className="cursor-pointer transition-opacity group-hover:opacity-75">
                           Cadastrado
                         </Badge>
@@ -296,7 +304,7 @@ export function ProductTable({ products, brandName, onStatusChange }: ProductTab
             </Button>
             {getPageNumbers().map((pg, idx) =>
               pg === '…' ? (
-                <span key={`e${idx}`} className="flex items-center justify-center w-8 h-8 text-xs text-muted-foreground">…</span>
+                <span key={e${idx}} className="flex items-center justify-center w-8 h-8 text-xs text-muted-foreground">…</span>
               ) : (
                 <Button
                   key={pg}
