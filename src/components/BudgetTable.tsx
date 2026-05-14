@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import {
   Search, ChevronLeft, ChevronRight, CheckCircle2, XCircle,
-  Download, ArrowLeft, Sparkles, Zap, Type, BarChart3, Plus, Check, X,
+  Download, ArrowLeft, Sparkles, Zap, Type, BarChart3, Plus, Check, X, Pencil,
 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
@@ -22,6 +22,7 @@ interface BudgetTableProps {
   fileName?: string;
   onClose: () => void;
   onAddToDatabase?: (item: BudgetItem, codigo: string) => void;
+  onEditMatchedCode?: (item: BudgetItem, newCodigo: string) => void;
 }
 
 function MatchBadge({ item }: { item: BudgetItem }) {
@@ -56,7 +57,7 @@ function ScoreBar({ score }: { score: number }) {
   );
 }
 
-export function BudgetTable({ items, fileName, onClose, onAddToDatabase }: BudgetTableProps) {
+export function BudgetTable({ items, fileName, onClose, onAddToDatabase, onEditMatchedCode }: BudgetTableProps) {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const [filter, setFilter] = useState<'todos' | 'encontrado' | 'nao_encontrado'>('todos');
@@ -66,9 +67,18 @@ export function BudgetTable({ items, fileName, onClose, onAddToDatabase }: Budge
   const [addCode, setAddCode] = useState('');
   const addInputRef = useRef<HTMLInputElement>(null);
 
+  // Controle do input inline de edição do codigo cadastrado
+  const [editingItem, setEditingItem] = useState<BudgetItem | null>(null);
+  const [editCode, setEditCode] = useState('');
+  const editInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     if (addingItem) addInputRef.current?.focus();
   }, [addingItem]);
+
+  useEffect(() => {
+    if (editingItem) editInputRef.current?.focus();
+  }, [editingItem]);
 
   const handleOpenAdd = (item: BudgetItem) => {
     setAddingItem(item);
@@ -85,6 +95,23 @@ export function BudgetTable({ items, fileName, onClose, onAddToDatabase }: Budge
   const handleCancelAdd = () => {
     setAddingItem(null);
     setAddCode('');
+  };
+
+  const handleOpenEdit = (item: BudgetItem) => {
+    setEditingItem(item);
+    setEditCode(item.matchedProduct?.codigo ?? '');
+  };
+
+  const handleConfirmEdit = () => {
+    if (!editingItem) return;
+    onEditMatchedCode?.(editingItem, editCode.trim());
+    setEditingItem(null);
+    setEditCode('');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingItem(null);
+    setEditCode('');
   };
 
   const encontrados = items.filter((i) => i.encontrado).length;
@@ -274,10 +301,49 @@ export function BudgetTable({ items, fileName, onClose, onAddToDatabase }: Budge
                     {item.cod_fabricacao || '—'}
                   </TableCell>
                   <TableCell className="font-mono text-sm">
-                    {item.matchedProduct ? (
-                      <span className="text-blue-700 font-medium">
-                        {item.matchedProduct.codigo || item.matchedProduct.cod_fabricacao}
-                      </span>
+                    {onEditMatchedCode && editingItem === item ? (
+                      <form
+                        onSubmit={(e) => { e.preventDefault(); handleConfirmEdit(); }}
+                        className="flex items-center gap-1"
+                      >
+                        <input
+                          ref={editInputRef}
+                          value={editCode}
+                          onChange={(e) => setEditCode(e.target.value)}
+                          placeholder="Novo codigo..."
+                          className="h-7 w-32 px-2 text-xs border border-blue-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono"
+                        />
+                        <button
+                          type="submit"
+                          title="Confirmar"
+                          className="h-7 w-7 flex items-center justify-center rounded-md bg-emerald-500 hover:bg-emerald-600 text-white transition-colors flex-shrink-0"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleCancelEdit}
+                          title="Cancelar"
+                          className="h-7 w-7 flex items-center justify-center rounded-md border border-border hover:border-red-400 hover:text-red-500 transition-colors flex-shrink-0"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </form>
+                    ) : item.matchedProduct ? (
+                      <div className="flex items-center gap-1.5 group/code">
+                        <span className="text-blue-700 font-medium">
+                          {item.matchedProduct.codigo || item.matchedProduct.cod_fabricacao}
+                        </span>
+                        {onEditMatchedCode && (
+                          <button
+                            onClick={() => handleOpenEdit(item)}
+                            title="Editar codigo cadastrado"
+                            className="opacity-0 group-hover/code:opacity-100 transition-opacity text-muted-foreground hover:text-blue-600"
+                          >
+                            <Pencil className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
                     ) : '—'}
                   </TableCell>
                   <TableCell className="text-center">
