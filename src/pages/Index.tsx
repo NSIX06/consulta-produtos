@@ -8,6 +8,7 @@ import {
   updateProductStatus, addProduct,
   loadBrandColors, saveBrandColor,
 } from '@/lib/store';
+
 import type { Product, BudgetItem, ParsedRow } from '@/types/product';
 
 const PRESET_COLORS = [
@@ -259,6 +260,19 @@ export default function Index() {
             items={budgetItems}
             fileName={budgetFileName}
             onClose={() => { setBudgetItems(null); setBudgetFileName(undefined); }}
+            onEditMatchedCode={(item, newCodigo) => {
+              if (!item.matchedProduct) return;
+              const updated = updateProductStatus(item.matchedProduct.id, 'cadastrado', newCodigo);
+              setAllProducts(updated);
+              const updatedProduct = updated.find((p) => p.id === item.matchedProduct!.id);
+              setBudgetItems((prev) =>
+                prev?.map((bi) =>
+                  bi === item && updatedProduct
+                    ? { ...bi, matchedProduct: updatedProduct }
+                    : bi
+                ) ?? null
+              );
+            }}
             onAddToDatabase={(item, codigo) => {
               const row: ParsedRow = {
                 descricao: item.descricao,
