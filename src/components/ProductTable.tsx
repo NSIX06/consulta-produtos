@@ -161,9 +161,9 @@ export function ProductTable({ products, brandName, onStatusChange }: ProductTab
 
         <div className="flex gap-1.5">
           {[
-            { key: 'todos', label: Todos (${products.length}) },
-            { key: 'pendente', label: Pendentes (${pendentes}) },
-            { key: 'cadastrado', label: Cadastrados (${cadastrados}) },
+            { key: 'todos', label: `Todos (${products.length})` },
+            { key: 'pendente', label: `Pendentes (${pendentes})` },
+            { key: 'cadastrado', label: `Cadastrados (${cadastrados})` },
           ].map(({ key, label }) => (
             <button
               key={key}
@@ -297,7 +297,7 @@ export function ProductTable({ products, brandName, onStatusChange }: ProductTab
             </Button>
             {getPageNumbers().map((pg, idx) =>
               pg === '...' ? (
-                <span key={e${idx}} className="flex items-center justify-center w-8 h-8 text-xs text-muted-foreground">...</span>
+                <span key={`e${idx}`} className="flex items-center justify-center w-8 h-8 text-xs text-muted-foreground">...</span>
               ) : (
                 <Button
                   key={pg}
