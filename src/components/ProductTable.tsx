@@ -30,7 +30,6 @@ export function ProductTable({ products, brandName, onStatusChange }: ProductTab
   const [page, setPage] = useState(0);
   const [statusFilter, setStatusFilter] = useState<'todos' | 'pendente' | 'cadastrado'>('todos');
 
-  // Controle do input inline de código
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [inputCode, setInputCode] = useState('');
   const codeInputRef = useRef<HTMLInputElement>(null);
@@ -94,12 +93,12 @@ export function ProductTable({ products, brandName, onStatusChange }: ProductTab
     setPage(0);
   };
 
-  const getPageNumbers = (): (number | '…')[] => {
+  const getPageNumbers = (): (number | '...')[] => {
     if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i);
-    const pages: (number | '…')[] = [0];
-    if (currentPage > 2) pages.push('…');
+    const pages: (number | '...')[] = [0];
+    if (currentPage > 2) pages.push('...');
     for (let i = Math.max(1, currentPage - 1); i <= Math.min(totalPages - 2, currentPage + 1); i++) pages.push(i);
-    if (currentPage < totalPages - 3) pages.push('…');
+    if (currentPage < totalPages - 3) pages.push('...');
     pages.push(totalPages - 1);
     return pages;
   };
@@ -115,34 +114,31 @@ export function ProductTable({ products, brandName, onStatusChange }: ProductTab
 
   return (
     <div className="flex flex-col animate-fade-in">
-      {/* Header */}
       <div className="mb-5">
         <h1 className="text-2xl font-bold text-foreground tracking-tight">
-          {brandName ? ${brandName} : 'Produtos Cadastrados'}
+          {brandName ? brandName : 'Produtos Cadastrados'}
         </h1>
         <p className="text-sm text-muted-foreground mt-0.5">
-          Gerencie e consulte produtos extraídos de documentos
+          Gerencie e consulte produtos extraidos de documentos
         </p>
       </div>
 
-      {/* Barra de filtros */}
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[240px] max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(0); }}
-            placeholder="Pesquisar por descrição, código..."
+            placeholder="Pesquisar por descricao, codigo..."
             className="pl-9 h-9"
           />
         </div>
 
-        {/* Ordenação */}
         <div className="flex items-center gap-1.5">
           <span className="text-xs text-muted-foreground mr-0.5">Ordem:</span>
           {([
             { field: 'original' as SortField, label: 'Planilha' },
-            { field: 'descricao' as SortField, label: 'A–Z' },
+            { field: 'descricao' as SortField, label: 'A-Z' },
           ]).map(({ field, label }) => (
             <button
               key={field}
@@ -187,15 +183,14 @@ export function ProductTable({ products, brandName, onStatusChange }: ProductTab
         </span>
       </div>
 
-      {/* Tabela */}
       <div className="rounded-xl border border-border bg-white shadow-sm overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow className="bg-slate-50/80 hover:bg-slate-50/80 border-b border-border">
               <TableHead className="w-12 text-center">#</TableHead>
-              <TableHead>Descrição</TableHead>
-              <TableHead><ThBtn field="codigo" label="Código" /></TableHead>
-              <TableHead><ThBtn field="cod_fabricacao" label="Cód. Fabricação" /></TableHead>
+              <TableHead>Descricao</TableHead>
+              <TableHead><ThBtn field="codigo" label="Codigo" /></TableHead>
+              <TableHead><ThBtn field="cod_fabricacao" label="Cod. Fabricacao" /></TableHead>
               <TableHead className="text-center w-32">Status</TableHead>
             </TableRow>
           </TableHeader>
@@ -222,11 +217,10 @@ export function ProductTable({ products, brandName, onStatusChange }: ProductTab
                   <TableCell className="font-medium text-sm max-w-xs truncate" title={p.descricao}>
                     {p.descricao}
                   </TableCell>
-                  <TableCell className="font-mono text-sm text-muted-foreground">{p.codigo || '—'}</TableCell>
-                  <TableCell className="font-mono text-sm">{p.cod_fabricacao || '—'}</TableCell>
+                  <TableCell className="font-mono text-sm text-muted-foreground">{p.codigo || '-'}</TableCell>
+                  <TableCell className="font-mono text-sm">{p.cod_fabricacao || '-'}</TableCell>
                   <TableCell className="text-center">
                     {onStatusChange && confirmingId === p.id ? (
-                      // Input inline para inserir o código ao cadastrar
                       <form
                         onSubmit={(e) => { e.preventDefault(); handleConfirmCadastro(p.id); }}
                         className="flex items-center gap-1 justify-center"
@@ -235,7 +229,7 @@ export function ProductTable({ products, brandName, onStatusChange }: ProductTab
                           ref={codeInputRef}
                           value={inputCode}
                           onChange={(e) => setInputCode(e.target.value)}
-                          placeholder="Código do sistema..."
+                          placeholder="Codigo do sistema..."
                           className="h-7 w-36 px-2 text-xs border border-blue-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono"
                         />
                         <button
@@ -269,7 +263,7 @@ export function ProductTable({ products, brandName, onStatusChange }: ProductTab
                         </Badge>
                       </button>
                     ) : onStatusChange && p.status === 'cadastrado' ? (
-                      <button onClick={() => handleOpenConfirm(p)} title="Clique para editar o código" className="group">
+                      <button onClick={() => handleOpenConfirm(p)} title="Clique para editar o codigo" className="group">
                         <Badge variant="success" className="cursor-pointer transition-opacity group-hover:opacity-75">
                           Cadastrado
                         </Badge>
@@ -287,11 +281,10 @@ export function ProductTable({ products, brandName, onStatusChange }: ProductTab
         </Table>
       </div>
 
-      {/* Paginação */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-4">
           <span className="text-xs text-muted-foreground">
-            Página {currentPage + 1} de {totalPages}
+            Pagina {currentPage + 1} de {totalPages}
           </span>
           <div className="flex gap-1">
             <Button
@@ -303,8 +296,8 @@ export function ProductTable({ products, brandName, onStatusChange }: ProductTab
               <ChevronLeft className="w-4 h-4" />
             </Button>
             {getPageNumbers().map((pg, idx) =>
-              pg === '…' ? (
-                <span key={e${idx}} className="flex items-center justify-center w-8 h-8 text-xs text-muted-foreground">…</span>
+              pg === '...' ? (
+                <span key={e${idx}} className="flex items-center justify-center w-8 h-8 text-xs text-muted-foreground">...</span>
               ) : (
                 <Button
                   key={pg}
